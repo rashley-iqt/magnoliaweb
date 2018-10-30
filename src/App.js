@@ -43,23 +43,27 @@ class App extends Component {
     fd.append('file', file);
     fd.append('filename', file.name)
 
+    const dlName = file.name + '-denoised';
     axios.post('http://localhost:5001/api/v1/convert', fd)
       .then(async (response) => {
         const url = 'http://localhost:5001' + response.data;
         const result = await fetch(url, { 'crossDomain': true });
           const buff = await result.arrayBuffer();
-            console.log(buff);
-              getAudioBuffer(buff, getAudioContext()).then((resultBuff) => {
-                this.setState({
-                  working:false,
-                  selectedFile: file.name,
-                  resultBuffer: resultBuff
-                });
-              });
+          const urlObject = window.URL || window.webkitURL || window;
+          const aBlob = new Blob([buff]);
+          const dlUrl = urlObject.createObjectURL(aBlob);
+          getAudioBuffer(buff, getAudioContext()).then((resultBuff) => {
+            this.setState({
+              working:false,
+              selectedFile: file.name,
+              resultBuffer: resultBuff
+            });
+          });
 
         this.setState({
           working:false,
-          downloadUrl: url,
+          downloadName: dlName,
+          downloadUrl: dlUrl,
         });
       })
       .catch((err) => {
